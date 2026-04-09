@@ -2,7 +2,7 @@ import React from 'react';
 
 const AdBanner: React.FC = () => {
   const handleClick = () => {
-    window.open('https://data.snappdown.com/', '_blank');
+    window.open('https://www.geodataclaw.com/', '_blank');
   };
 
   return (
@@ -41,7 +41,7 @@ const AdBanner: React.FC = () => {
 
           {/* 描述文字 */}
           <div className="text-sm opacity-90 mb-3 leading-relaxed">
-            访问 <span className="font-semibold text-yellow-200">data.snappdown.com</span> 获取您的专属密钥
+            访问 <span className="font-semibold text-yellow-200">www.geodataclaw.com</span> 获取您的专属密钥
           </div>
 
           {/* 特性标签 */}

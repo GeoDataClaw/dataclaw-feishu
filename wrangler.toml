@@ -1,5 +1,6 @@
 name = "dataminer-feishu"
 main = "worker/index.js"
+account_id = "c80f28112df2895a03261efef13f4fe8"
 compatibility_date = "2024-01-01"
 compatibility_flags = ["nodejs_compat"]
 
@@ -15,7 +16,7 @@ name = "dataminer-feishu-prod"
 name = "dataminer-feishu-staging"
 
 # Environment variables (set these using wrangler secret put)
-# SNAPPDOWN_API_BASE_URL = "https://data.snappdown.com/api"
+# SNAPPDOWN_API_BASE_URL = "https://www.geodataclaw.com/api"
 
 # KV namespace for caching (optional)
 # [[kv_namespaces]]

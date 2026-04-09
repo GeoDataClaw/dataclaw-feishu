@@ -212,7 +212,7 @@ export default function App() {
                 </label>
                 <button
                   type="button"
-                  onClick={() => window.open('https://data.snappdown.com/', '_blank')}
+                  onClick={() => window.open('https://www.geodataclaw.com/', '_blank')}
                   className="text-xs text-indigo-600 hover:text-indigo-800 font-medium flex items-center"
                 >
                   <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

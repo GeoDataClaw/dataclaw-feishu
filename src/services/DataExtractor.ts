@@ -13,7 +13,7 @@ export const ResponseCode = {
 export class InsufficientCreditsError extends Error {
   public readonly code: number;
 
-  constructor(message: string = '您的 Credits 已耗尽，请前往 https://data.snappdown.com 充值后使用') {
+  constructor(message: string = '您的 Credits 已耗尽，请前往 https://www.geodataclaw.com 充值后使用') {
     super(message);
     this.name = 'InsufficientCreditsError';
     this.code = ResponseCode.INSUFFICIENT_CREDITS;
@@ -96,7 +96,7 @@ export class PlatformDetector {
 
 // 基础平台提取器
 export abstract class BasePlatformExtractor implements IDataExtractor {
-  protected baseUrl = 'https://data.snappdown.com/api';
+  protected baseUrl = 'https://www.geodataclaw.com/api';
   protected abstract platform: Platform;
   protected abstract extractType: string;
   protected options: ExtractOptions;

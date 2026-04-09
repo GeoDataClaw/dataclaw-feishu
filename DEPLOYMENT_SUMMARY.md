@@ -87,12 +87,12 @@ npm run deploy:production
 
 ### Worker 功能
 1. **静态文件服务**: 提供 React 应用的所有静态文件
-2. **API 代理**: 代理请求到 `data.snappdown.com` 和 `snappdown.com`
+2. **API 代理**: 代理请求到 `www.geodataclaw.com` 和 `snappdown.com`
 3. **CORS 处理**: 自动添加必要的 CORS 头
 4. **SPA 路由**: 支持 React Router 的客户端路由
 
 ### API 代理路由
-- `/api/*` → `https://data.snappdown.com/api/*`
+- `/api/*` → `https://www.geodataclaw.com/api/*`
 - `/api/proxy/media/*` → `https://snappdown.com/api/proxy/media/*`
 - `/api/download/proxy/*` → `https://snappdown.com/api/download/proxy/*`
 

@@ -6,7 +6,7 @@
 // Import the static assets manifest (will be generated during build)
 import ASSET_MANIFEST from './assets-manifest.json';
 
-const SNAPPDOWN_API_BASE = 'https://data.snappdown.com/api';
+const SNAPPDOWN_API_BASE = 'https://www.geodataclaw.com/api';
 const SNAPPDOWN_PROXY_BASE = 'https://snappdown.com/api';
 
 export default {
