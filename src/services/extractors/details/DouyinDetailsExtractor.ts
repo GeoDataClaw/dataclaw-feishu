@@ -123,15 +123,13 @@ export class DouyinDetailsExtractor extends BasePlatformExtractor {
         标题: aweme.desc || '',
         发布时间: formatTimestamp(aweme.create_time),
         视频时长: formatDuration(Math.floor(aweme.duration / 1000)),
-        视频封面: aweme.video?.origin_cover?.url_list?.[0] ? await ProxyUtils.smartProxyUrl(aweme.video.origin_cover.url_list[0], 'douyin') : '',
+        视频封面: aweme.video?.origin_cover?.url_list?.[0] || '',
 
         // 作者信息
         作者ID: aweme.author?.uid || '',
         作者昵称: aweme.author?.nickname || '',
-        作者头像: aweme.author?.avatar_thumb?.url_list?.[0] ? await ProxyUtils.smartProxyUrl(aweme.author.avatar_thumb.url_list[0], 'douyin') : '',
         作者签名: aweme.author?.signature || '',
         作者粉丝数: aweme.author?.follower_count.toLocaleString() || 0,
-        作者关注数: aweme.author?.following_count.toLocaleString() || 0,
         作者获赞数: aweme.author?.total_favorited.toLocaleString() || 0,
         // 统计数据
         点赞数: aweme.statistics?.digg_count.toLocaleString() || 0,
@@ -145,13 +143,36 @@ export class DouyinDetailsExtractor extends BasePlatformExtractor {
         音乐作者: aweme.music?.author || '',
         音乐ID: aweme.music?.id_str || '',
         音乐时长: formatDuration(aweme.music?.duration || 0),
-        音乐链接: aweme.music?.play_url?.url_list?.[0] ? await ProxyUtils.smartProxyUrl(aweme.music.play_url.url_list[0], 'douyin') : '',
         提取时间: Date.now(),
+      };
+
+      baseData['__fieldTypes'] = {
+        平台: 'text',
+        视频ID: 'text',
+        标题: 'text',
+        发布时间: 'datetime',
+        视频时长: 'text',
+        视频封面: 'url',
+        作者ID: 'text',
+        作者昵称: 'text',
+        作者签名: 'text',
+        作者粉丝数: 'text',
+        作者获赞数: 'text',
+        点赞数: 'text',
+        评论数: 'text',
+        分享数: 'text',
+        收藏数: 'text',
+        音乐标题: 'text',
+        音乐作者: 'text',
+        音乐ID: 'text',
+        音乐时长: 'text',
+        提取时间: 'createdTime',
       };
 
       // 初始化所有支持的分辨率列为空字符串
       ResolutionUtils.supportedResolutions.forEach(resolution => {
         baseData[`视频分辨率_${resolution}`] = '';
+        baseData['__fieldTypes'][`视频分辨率_${resolution}`] = 'url';
       });
 
       // 处理视频流信息，提取不同分辨率的视频链接
