@@ -1,4 +1,4 @@
-import {
+﻿import {
   bitable,
   ITableMeta,
   IFieldMeta,
@@ -24,6 +24,7 @@ export interface TableUpdateResult {
 
 export class FeishuTableService {
   private tableMetaList: ITableMeta[] = [];
+  private static readonly FIELD_TYPE_META_KEY = "__fieldTypes";
 
   async initialize(): Promise<void> {
     try {
@@ -105,9 +106,9 @@ export class FeishuTableService {
       const finalFieldNames = finalFields.map((f: any) => f.name);
 
       // 检查数据字段和表格字段的匹配情况
-      const sampleDataFields = Object.keys(data[0]).map((field) =>
-        this.sanitizeFieldName(field)
-      );
+      const sampleDataFields = Object.keys(data[0])
+        .filter((field) => field !== FeishuTableService.FIELD_TYPE_META_KEY)
+        .map((field) => this.sanitizeFieldName(field));
 
       const missingInTable = sampleDataFields.filter(
         (field) => !finalFieldNames.includes(field)
@@ -197,6 +198,7 @@ export class FeishuTableService {
       } else {
         console.warn('extractor没有getTypeDisplayName方法，使用默认名称');
       }
+
     } catch (error) {
       console.error('获取extractor类型名称失败:', error);
     }
@@ -222,9 +224,13 @@ export class FeishuTableService {
     }
 
     const sample = sampleData[0];
-    const fields = Object.keys(sample).map((key) => {
+    const fields = Object.keys(sample)
+      .filter((key) => key !== FeishuTableService.FIELD_TYPE_META_KEY)
+      .map((key) => {
       const fieldName = this.sanitizeFieldName(key);
-      const fieldType = this.inferFieldType(sample[key], key); // 传递原始字段名
+      const fieldType =
+        this.getDeclaredFieldType(sample, key, sample[key]) ??
+        this.inferFieldType(this.unwrapTypedFieldValue(sample[key]), key);
 
       const fieldConfig: any = {
         name: fieldName,
@@ -382,7 +388,9 @@ export class FeishuTableService {
       );
 
       const sampleRecord = data[0];
-      const requiredFields = Object.keys(sampleRecord);
+      const requiredFields = Object.keys(sampleRecord).filter(
+        (field) => field !== FeishuTableService.FIELD_TYPE_META_KEY
+      );
 
       // 创建字段映射：原始字段名 -> 清理后的字段名
       const fieldMapping = new Map<string, string>();
@@ -395,6 +403,39 @@ export class FeishuTableService {
       const missingFields = sanitizedRequiredFields.filter(
         (field) => !existingFieldNames.includes(field)
       );
+
+      const fieldsToFix = existingFields
+        .map((field: IFieldMeta) => {
+          let originalFieldName = "";
+          for (const [original, sanitized] of fieldMapping.entries()) {
+            if (sanitized === field.name) {
+              originalFieldName = original;
+              break;
+            }
+          }
+
+          if (!originalFieldName) {
+            return null;
+          }
+
+          const rawValue = sampleRecord[originalFieldName];
+          const expectedFieldType =
+            this.getDeclaredFieldType(sampleRecord, originalFieldName, rawValue) ??
+            this.inferFieldType(this.unwrapTypedFieldValue(rawValue), originalFieldName);
+
+          if (field.type !== expectedFieldType) {
+            return {
+              field,
+              expectedFieldType,
+            };
+          }
+
+          return null;
+        })
+        .filter(Boolean) as Array<{
+          field: IFieldMeta;
+          expectedFieldType: FieldType;
+        }>;
 
 
       if (missingFields.length > 0) {
@@ -417,7 +458,10 @@ export class FeishuTableService {
 
           try {
             const sampleValue = sampleRecord[originalFieldName];
-            const fieldType = this.inferFieldType(sampleValue, originalFieldName); // 传递原始字段名
+            const rawValue = this.unwrapTypedFieldValue(sampleValue);
+            const fieldType =
+              this.getDeclaredFieldType(sampleRecord, originalFieldName, sampleValue) ??
+              this.inferFieldType(rawValue, originalFieldName);
             console.log(
               `准备添加字段: ${sanitizedFieldName} (原名: ${originalFieldName}, 样本值: "${sampleValue}", 推断类型: ${fieldType}, DateTime类型值: ${FieldType.DateTime}, CreatedTime类型值: ${FieldType.CreatedTime})`
             );
@@ -459,10 +503,135 @@ export class FeishuTableService {
       } else {
         console.log("所有字段都已存在");
       }
+
+      if (fieldsToFix.length > 0) {
+        for (const fieldToFix of fieldsToFix) {
+          try {
+            const fieldConfig: any = {
+              name: fieldToFix.field.name,
+              type: fieldToFix.expectedFieldType,
+            };
+
+            if (fieldToFix.expectedFieldType === FieldType.DateTime) {
+              fieldConfig.property = {
+                dateFormat: DateFormatter.DATE_TIME,
+                displayTimeZone: false,
+                autoFill: false,
+              };
+            } else if (fieldToFix.expectedFieldType === FieldType.CreatedTime) {
+              fieldConfig.property = {
+                dateFormat: DateFormatter.DATE_TIME,
+                displayTimeZone: false,
+              };
+            }
+
+            console.log(
+              `检测到字段类型不一致，尝试修正: ${fieldToFix.field.name}, 当前类型: ${fieldToFix.field.type}, 目标类型: ${fieldToFix.expectedFieldType}`
+            );
+            await table.setField(fieldToFix.field.id, fieldConfig);
+          } catch (fieldFixError) {
+            console.warn(`自动修正字段 ${fieldToFix.field.name} 类型失败:`, fieldFixError);
+          }
+        }
+      }
     } catch (error) {
       console.warn("Failed to ensure fields:", error);
       // 继续执行，不阻断流程
     }
+  }
+
+  private isTypedFieldValue(value: unknown): value is { value: unknown; type: unknown } {
+    return (
+      typeof value === "object" &&
+      value !== null &&
+      !Array.isArray(value) &&
+      "value" in value &&
+      "type" in value
+    );
+  }
+
+  private unwrapTypedFieldValue<T = any>(value: T): any {
+    if (this.isTypedFieldValue(value)) {
+      return value.value;
+    }
+
+    return value;
+  }
+
+  private normalizeDeclaredFieldType(fieldType: unknown): FieldType | undefined {
+    if (typeof fieldType === "number") {
+      return fieldType as FieldType;
+    }
+
+    if (fieldType === String) {
+      return FieldType.Text;
+    }
+
+    if (fieldType === Number) {
+      return FieldType.Number;
+    }
+
+    if (fieldType === Boolean) {
+      return FieldType.Checkbox;
+    }
+
+    if (fieldType === Date) {
+      return FieldType.DateTime;
+    }
+
+    if (typeof fieldType !== "string") {
+      return undefined;
+    }
+
+    const normalized = fieldType.trim().toLowerCase().replace(/[_\s-]/g, "");
+
+    switch (normalized) {
+      case "text":
+      case "string":
+        return FieldType.Text;
+      case "number":
+      case "numeric":
+        return FieldType.Number;
+      case "checkbox":
+      case "boolean":
+      case "bool":
+        return FieldType.Checkbox;
+      case "url":
+      case "link":
+        return FieldType.Url;
+      case "date":
+      case "datetime":
+        return FieldType.DateTime;
+      case "createdtime":
+        return FieldType.CreatedTime;
+      default:
+        return undefined;
+    }
+  }
+
+  private getDeclaredFieldType(record: any, fieldName: string, value?: any): FieldType | undefined {
+    const directValue = value ?? record?.[fieldName];
+
+    if (this.isTypedFieldValue(directValue)) {
+      return this.normalizeDeclaredFieldType(directValue.type);
+    }
+
+    const meta = record?.[FeishuTableService.FIELD_TYPE_META_KEY];
+    if (!meta || typeof meta !== "object") {
+      return undefined;
+    }
+
+    const candidates = [fieldName, this.sanitizeFieldName(fieldName)];
+    for (const candidate of candidates) {
+      if (candidate in meta) {
+        const normalizedType = this.normalizeDeclaredFieldType(meta[candidate]);
+        if (normalizedType !== undefined) {
+          return normalizedType;
+        }
+      }
+    }
+
+    return undefined;
   }
 
   private async addRecords(
@@ -496,6 +665,7 @@ export class FeishuTableService {
         const records = batch.map((item, index) => {
           try {
             const fields = this.convertToTableFields(item, tableFields);
+            this.logRecordBeforeInsert(i + index + 1, item, fields, tableFields);
             return { fields };
           } catch (convertError) {
             console.error(`转换记录 ${i + index + 1} 失败:`, convertError);
@@ -526,6 +696,7 @@ export class FeishuTableService {
           try {
             const item = batch[j];
             const fields = this.convertToTableFields(item, tableFields);
+            this.logRecordBeforeInsert(i + j + 1, item, fields, tableFields);
             // 使用单条记录添加方法，参考demo.vue的实现
             await table.addRecord({ fields });
             totalAdded += 1;
@@ -568,6 +739,27 @@ export class FeishuTableService {
     return totalAdded;
   }
 
+  private logRecordBeforeInsert(
+    recordIndex: number,
+    rawData: any,
+    fields: Record<string, any>,
+    tableFields: any[]
+  ): void {
+    const fieldIdToNameMap = new Map<string, string>();
+    tableFields.forEach((field) => {
+      fieldIdToNameMap.set(field.id, field.name);
+    });
+
+    const readableFields = Object.entries(fields).reduce((result, [fieldId, value]) => {
+      const fieldName = fieldIdToNameMap.get(fieldId) || fieldId;
+      result[fieldName] = value;
+      return result;
+    }, {} as Record<string, any>);
+
+    console.log(`[多维表格] 准备插入第 ${recordIndex} 行原始数据:`, rawData);
+    console.log(`[多维表格] 准备插入第 ${recordIndex} 行转换后字段:`, readableFields);
+  }
+
   private convertToTableFields(data: any, tableFields: any[]): any {
     const fields: any = {};
 
@@ -580,8 +772,14 @@ export class FeishuTableService {
     });
 
     for (const [key, value] of Object.entries(data)) {
+      if (key === FeishuTableService.FIELD_TYPE_META_KEY) {
+        continue;
+      }
+
+      const rawValue = this.unwrapTypedFieldValue(value);
+
       // 跳过 null、undefined 和空字符串
-      if (value === null || value === undefined || value === "") {
+      if (rawValue === null || rawValue === undefined || rawValue === "") {
         continue;
       }
 
@@ -596,11 +794,22 @@ export class FeishuTableService {
       }
 
       const fieldType = fieldIdToTypeMap.get(fieldId);
+      const declaredFieldType = this.getDeclaredFieldType(data, key, value);
 
       // 处理不同类型的值
-      let processedValue = value;
+      let processedValue = rawValue;
 
       try {
+        if (
+          declaredFieldType !== undefined &&
+          fieldType !== undefined &&
+          declaredFieldType !== fieldType
+        ) {
+          console.warn(
+            `字段 "${sanitizedKey}" 的声明类型 ${declaredFieldType} 与表格现有类型 ${fieldType} 不一致，尝试按表格类型写入`
+          );
+        }
+
         // 特殊处理CreatedTime字段 - 跳过，让飞书自动处理
         if (fieldType === FieldType.CreatedTime) {
           continue;
@@ -608,8 +817,8 @@ export class FeishuTableService {
 
         // 特殊处理DateTime字段
         if (fieldType === FieldType.DateTime) {
-          if (typeof value === "string") {
-            const trimmedValue = value.trim();
+          if (typeof rawValue === "string") {
+            const trimmedValue = rawValue.trim();
             if (trimmedValue === "") {
               continue;
             }
@@ -627,20 +836,45 @@ export class FeishuTableService {
               console.warn(`DateTime字段 "${sanitizedKey}" 解析失败:`, dateError);
               continue;
             }
-          } else if (typeof value === "number") {
+          } else if (typeof rawValue === "number") {
             // 如果已经是数字，检查是否是有效的时间戳
-            if (value > 0 && isFinite(value)) {
+            if (rawValue > 0 && isFinite(rawValue)) {
               // 如果是秒级时间戳，转换为毫秒
-              processedValue = value < 10000000000 ? value * 1000 : value;
+              processedValue = rawValue < 10000000000 ? rawValue * 1000 : rawValue;
             } else {
               continue;
             }
           } else {
             continue;
           }
-        } else if (typeof value === "string") {
+        } else if (fieldType === FieldType.Number) {
+          if (typeof rawValue === "number") {
+            if (isNaN(rawValue) || !isFinite(rawValue)) {
+              continue;
+            }
+            processedValue = rawValue;
+          } else if (typeof rawValue === "string") {
+            const normalizedValue = rawValue.replace(/,/g, "").trim();
+            if (normalizedValue === "") {
+              continue;
+            }
+
+            if (!this.isNumericString(normalizedValue)) {
+              console.warn(`无法解析Number字段 "${sanitizedKey}" 的值: "${rawValue}"`);
+              continue;
+            }
+
+            processedValue = Number(normalizedValue);
+          } else {
+            const numericValue = Number(rawValue);
+            if (Number.isNaN(numericValue) || !Number.isFinite(numericValue)) {
+              continue;
+            }
+            processedValue = numericValue;
+          }
+        } else if (typeof rawValue === "string") {
           // 清理字符串值
-          processedValue = value.trim();
+          processedValue = rawValue.trim();
 
           // 如果清理后为空，跳过
           if (processedValue === "") {
@@ -662,21 +896,21 @@ export class FeishuTableService {
               processedValue = urlValue;
             }
           }
-        } else if (typeof value === "number") {
+        } else if (typeof rawValue === "number") {
           // 确保数字值有效
-          if (isNaN(value) || !isFinite(value)) {
+          if (isNaN(rawValue) || !isFinite(rawValue)) {
             continue;
           }
           // 对于过大的数字，转换为字符串
-          if (value > Number.MAX_SAFE_INTEGER) {
-            processedValue = String(value);
+          if (rawValue > Number.MAX_SAFE_INTEGER) {
+            processedValue = String(rawValue);
           }
-        } else if (typeof value === "boolean") {
+        } else if (typeof rawValue === "boolean") {
           // 布尔值直接使用
-          processedValue = value;
+          processedValue = rawValue;
         } else {
           // 其他类型转换为字符串
-          processedValue = String(value);
+          processedValue = String(rawValue);
         }
 
         // 使用字段ID作为键，而不是字段名称
