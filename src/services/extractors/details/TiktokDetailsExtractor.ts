@@ -130,7 +130,7 @@ export class TiktokDetailsExtractor extends BasePlatformExtractor {
         作者ID: item.author?.id || '',
         作者昵称: item.author?.nickname || '',
         作者唯一ID: item.author?.uniqueId || '',
-        作者头像: item.author?.avatarLarger ? await ProxyUtils.smartProxyUrl(item.author.avatarLarger, 'tiktok') : '',
+        // 作者头像: item.author?.avatarLarger ? await ProxyUtils.smartProxyUrl(item.author.avatarLarger, 'tiktok') : '',
         作者签名: item.author?.signature || '',
         作者粉丝数: item.authorStats?.followerCount.toLocaleString() || 0,
         作者关注数: item.authorStats?.followingCount.toLocaleString() || 0,
@@ -149,14 +149,45 @@ export class TiktokDetailsExtractor extends BasePlatformExtractor {
         音乐标题: item.music?.title || '',
         音乐作者: item.music?.authorName || '',
         音乐时长: formatDuration(item.music?.duration || 0),
-        音乐链接: item.music?.playUrl ? await ProxyUtils.smartProxyUrl(item.music.playUrl, 'tiktok') : '',
+        // 音乐链接: item.music?.playUrl ? await ProxyUtils.smartProxyUrl(item.music.playUrl, 'tiktok') : '',
         // 话题标签
         话题标签: this.extractChallenges(item.challenges),
 
         // 字幕信息
-        字幕信息: await this.formatSubtitleInfo(item.id, item.video?.subtitleInfos),
+        // 字幕信息: await this.formatSubtitleInfo(item.id, item.video?.subtitleInfos),
 
         提取时间: Date.now(),
+      };
+
+      baseData['__fieldTypes'] = {
+        平台: 'text',
+        视频ID: 'text',
+        标题: 'text',
+        发布时间: 'datetime',
+        视频时长: 'text',
+        视频封面: 'url',
+        作者ID: 'text',
+        作者昵称: 'text',
+        作者唯一ID: 'text',
+        // 作者头像: 'url',
+        作者签名: 'text',
+        作者粉丝数: 'text',
+        作者关注数: 'text',
+        作者获赞数: 'text',
+        作者视频数: 'text',
+        点赞数: 'text',
+        评论数: 'text',
+        分享数: 'text',
+        收藏数: 'text',
+        播放数: 'text',
+        音乐ID: 'text',
+        音乐标题: 'text',
+        音乐作者: 'text',
+        音乐时长: 'text',
+        // 音乐链接: 'url',
+        话题标签: 'text',
+        // 字幕信息: 'text',
+        提取时间: 'createdTime',
       };
 
       formattedItems.push(baseData);
