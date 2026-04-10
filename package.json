@@ -1,8 +1,8 @@
 {
-  "name": "dataminer",
+  "name": "dataclaw-feishu",
   "version": "1.0.0",
   "type": "module",
-  "description": "dataminer",
+  "description": "dataclaw-feishu",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -16,7 +16,7 @@
   },
   "keywords": [],
   "output": "dist",
-  "author": "dataminer",
+  "author": "vicky",
   "license": "ISC",
   "devDependencies": {
     "@types/react": "^18.0.15",

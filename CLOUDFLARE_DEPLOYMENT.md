@@ -1,6 +1,6 @@
 # Cloudflare Workers Deployment Guide
 
-This guide explains how to deploy the DataMiner Feishu application to Cloudflare Workers.
+This guide explains how to deploy the dataclaw Feishu application to Cloudflare Workers.
 
 ## Prerequisites
 
@@ -69,8 +69,8 @@ npx wrangler secret put YOUR_SECRET_NAME
 
 The project supports multiple environments:
 
-- **staging**: `dataminer-feishu-staging.your-subdomain.workers.dev`
-- **production**: `dataminer-feishu-prod.your-subdomain.workers.dev`
+- **staging**: `dataclaw-feishu-staging.your-subdomain.workers.dev`
+- **production**: `dataclaw-feishu-prod.your-subdomain.workers.dev`
 
 ## Architecture
 

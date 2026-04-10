@@ -1,4 +1,4 @@
-name = "dataminer-feishu"
+name = "dataclaw-feishu"
 main = "worker/index.js"
 account_id = "c80f28112df2895a03261efef13f4fe8"
 compatibility_date = "2024-01-01"
@@ -10,10 +10,10 @@ cwd = "."
 watch_dir = ["src", "worker"]
 
 [env.production]
-name = "dataminer-feishu-prod"
+name = "dataclaw-feishu-prod"
 
 [env.staging]
-name = "dataminer-feishu-staging"
+name = "dataclaw-feishu-staging"
 
 # Environment variables (set these using wrangler secret put)
 # SNAPPDOWN_API_BASE_URL = "https://www.geodataclaw.com/api"
@@ -27,5 +27,5 @@ name = "dataminer-feishu-staging"
 # Custom domains (configure after deployment)
 # [env.production]
 # routes = [
-#   { pattern = "dataminer.yourdomain.com/*", zone_name = "yourdomain.com" }
+#   { pattern = "dataclaw.yourdomain.com/*", zone_name = "yourdomain.com" }
 # ]

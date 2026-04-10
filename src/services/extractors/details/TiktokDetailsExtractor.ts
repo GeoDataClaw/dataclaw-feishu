@@ -50,7 +50,8 @@ export class TiktokDetailsExtractor extends BasePlatformExtractor {
           };
 
           const result = await this.makeRequest(endpoint, payload);
-
+ 
+          
           // 检查响应数据结构
           if (result.data?.itemInfo?.itemStruct) {
             const formattedData = await this.formatData([result.data.itemInfo.itemStruct]);

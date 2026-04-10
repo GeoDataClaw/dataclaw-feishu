@@ -66,6 +66,13 @@ export class DataExtractionService {
       const platformName = PlatformDetector.getPlatformName(platform);
       const extractType = request.extractType;
 
+      if (platform === 'youtube') {
+        return {
+          success: false,
+          message: 'YouTube 平台暂不支持',
+        };
+      }
+
       this.reportProgress(5, `检测到${platformName}平台，开始提取${this.getTypeDisplayName(extractType)}数据`);
       
       // 2. 准备提取选项

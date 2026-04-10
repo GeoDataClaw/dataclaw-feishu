@@ -10,15 +10,30 @@
   html, body {
     margin: 0;
     padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-      sans-serif;
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background: linear-gradient(180deg, #f7f7f8 0%, #efeff1 100%);
+    color: #111827;
   }
 
   #root {
     min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.65), transparent 24%),
+      radial-gradient(circle at 85% 12%, rgba(229, 231, 235, 0.7), transparent 22%);
+  }
+
+  ::selection {
+    background: rgba(239, 68, 68, 0.45);
+    color: #fff5f5;
   }
 }
 

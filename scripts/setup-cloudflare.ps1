@@ -1,7 +1,7 @@
 # PowerShell script for setting up Cloudflare Workers deployment
 # Usage: .\scripts\setup-cloudflare.ps1
 
-Write-Host "🚀 Setting up DataMiner Feishu for Cloudflare Workers..." -ForegroundColor Green
+Write-Host "🚀 Setting up dataclaw Feishu for Cloudflare Workers..." -ForegroundColor Green
 
 # Check if Node.js is installed
 try {

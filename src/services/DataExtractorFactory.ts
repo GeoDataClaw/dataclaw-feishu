@@ -1,16 +1,11 @@
 import { IDataExtractor, Platform, PlatformDetector, ExtractOptions } from './DataExtractor';
 
-// 主页提取器
-import { XhsHomepageExtractor } from './extractors/homepage/XhsHomepageExtractor';
 import { DouyinHomepageExtractor } from './extractors/homepage/DouyinHomepageExtractor';
 import { TiktokHomepageExtractor } from './extractors/homepage/TiktokHomepageExtractor';
-import { YoutubeHomepageExtractor } from './extractors/homepage/YoutubeHomepageExtractor';
 
-// 详情提取器
 import { DouyinDetailsExtractor } from './extractors/details/DouyinDetailsExtractor';
 import { KuaishouDetailsExtractor } from './extractors/details/KuaishouDetailsExtractor';
 import { TiktokDetailsExtractor } from './extractors/details/TiktokDetailsExtractor';
-import { YoutubeDetailsExtractor } from './extractors/details/YoutubeDetailsExtractor';
 import { XhsDetailsExtractor } from './extractors/details/XhsDetailsExtractor';
 
 // 评论提取器
@@ -20,6 +15,10 @@ import { DouyinCommentsExtractor } from './extractors/comments/DouyinCommentsExt
 export class DataExtractorFactory {
   static create(extractType: string, url: string, options: ExtractOptions): IDataExtractor {
     const platform = PlatformDetector.detectPlatform(url);
+
+    if (platform === 'youtube') {
+      throw new Error('YouTube 平台暂不支持');
+    }
 
     switch (extractType) {
       case 'homepage':
@@ -36,13 +35,11 @@ export class DataExtractorFactory {
   private static createHomepageExtractor(platform: Platform, options: ExtractOptions): IDataExtractor {
     switch (platform) {
       case 'xhs':
-        return new XhsHomepageExtractor(options);
+        throw new Error('主页提取不支持小红书，请改用「详情提取」并粘贴笔记链接');
       case 'douyin':
         return new DouyinHomepageExtractor(options);
       case 'tiktok':
         return new TiktokHomepageExtractor(options);
-      case 'youtube':
-        return new YoutubeHomepageExtractor(options);
       default:
         throw new Error(`Unsupported platform for homepage: ${platform}`);
     }
@@ -58,8 +55,6 @@ export class DataExtractorFactory {
         return new KuaishouDetailsExtractor(options);
       case 'tiktok':
         return new TiktokDetailsExtractor(options);
-      case 'youtube':
-        return new YoutubeDetailsExtractor(options);
       default:
         throw new Error(`Unsupported platform for details: ${platform}`);
     }
@@ -78,7 +73,7 @@ export class DataExtractorFactory {
   
   // 获取支持的平台列表
   static getSupportedPlatforms(): Platform[] {
-    return ['xhs', 'douyin', 'kuaishou', 'tiktok', 'youtube'];
+    return ['xhs', 'douyin', 'kuaishou', 'tiktok'];
   }
   
   // 检查平台是否支持指定的提取类型

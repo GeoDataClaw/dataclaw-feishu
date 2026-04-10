@@ -1,5 +1,5 @@
 /**
- * Cloudflare Worker for DataMiner Feishu Application
+ * Cloudflare Worker for dataclaw Feishu Application
  * Handles static file serving and API proxying
  */
 

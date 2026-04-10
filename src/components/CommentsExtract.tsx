@@ -29,6 +29,7 @@ const CommentsExtract: React.FC<ExtractTypeProps> = (props) => {
         min: 1,
         max: 50,
         required: true,
+        inlineCheckboxAfter: 'includeReplies',
       },
       {
         type: 'checkbox' as const,

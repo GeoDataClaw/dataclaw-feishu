@@ -1,4 +1,4 @@
-# DataMiner Feishu - Cloudflare Workers 部署指南
+# dataclaw Feishu - Cloudflare Workers 部署指南
 
 这个项目现在支持部署到 Cloudflare Workers，提供全球 CDN 加速和无服务器架构。
 
@@ -87,8 +87,8 @@ npx wrangler secret put YOUR_SECRET_NAME
 
 项目支持多个环境：
 
-- **staging**: `dataminer-feishu-staging.your-subdomain.workers.dev`
-- **production**: `dataminer-feishu-prod.your-subdomain.workers.dev`
+- **staging**: `dataclaw-feishu-staging.your-subdomain.workers.dev`
+- **production**: `dataclaw-feishu-prod.your-subdomain.workers.dev`
 
 ## 🔧 开发
 

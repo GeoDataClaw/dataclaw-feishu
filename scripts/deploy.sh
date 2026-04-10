@@ -7,7 +7,7 @@ set -e
 
 ENVIRONMENT=${1:-staging}
 
-echo "🚀 Deploying DataMiner Feishu to Cloudflare Workers ($ENVIRONMENT)..."
+echo "🚀 Deploying dataclaw Feishu to Cloudflare Workers ($ENVIRONMENT)..."
 
 # Check if wrangler is installed
 if ! command -v wrangler &> /dev/null; then
