@@ -218,9 +218,33 @@ export class DouyinHomepageExtractor extends BasePlatformExtractor {
         标签: aweme.video_tag?.map((tag: any) => tag.tag_name).join(', ') || '',
       };
 
+      baseData['__fieldTypes'] = {
+        平台: 'text',
+        视频ID: 'text',
+        描述: 'text',
+        链接: 'url',
+        发布时间: 'datetime',
+        点赞数: 'text',
+        评论数: 'text',
+        分享数: 'text',
+        推荐数: 'text',
+        收藏数: 'text',
+        作者: 'text',
+        作者头像: 'url',
+        视频时长: 'text',
+        视频封面: 'url',
+        音乐标题: 'text',
+        音乐作者: 'text',
+        音乐链接: 'url',
+        话题: 'text',
+        标签: 'text',
+        提取时间: 'createdTime',
+      };
+
       // 初始化所有支持的分辨率列为空字符串
       ResolutionUtils.supportedResolutions.forEach(resolution => {
         baseData[`视频分辨率_${resolution}`] = '';
+        baseData['__fieldTypes'][`视频分辨率_${resolution}`] = 'url';
       });
 
       // 处理 bit_rate 数组，提取不同分辨率的视频链接
@@ -240,9 +264,7 @@ export class DouyinHomepageExtractor extends BasePlatformExtractor {
 
                 // 查找 www.douyin.com 域名的播放地址
                 if (bitRateItem.play_addr.url_list && Array.isArray(bitRateItem.play_addr.url_list)) {
-                  const douyinUrl = bitRateItem.play_addr.url_list.find((url: string) =>
-                    url.includes('www.douyin.com')
-                  );
+                  const douyinUrl = bitRateItem.play_addr.url_list[0]
 
                   if (douyinUrl) {
                     // 只有在找到抖音链接时才设置，避免覆盖已有的链接
